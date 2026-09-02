@@ -326,7 +326,7 @@
             // CENSUS TRACTS
             // --------------------------------------------------------
 
-            fetch('Data/Census_Tracts.geojson')
+            fetch('Data/Census_Tracts_SVI.geojson')
                 .then(response => {
 
                     if (!response.ok) {
@@ -570,16 +570,22 @@
 
                         style: censusStyle,
 
-                        onEachFeature: function (
+                     onEachFeature: function (
                             feature,
                             layer
                         ) {
-
+                        
+                            var p = feature.properties;
                             layer.bindPopup(
-                                "<strong>Census Tract</strong><br><br>" +
-                                createPopup(feature)
+                                "<b>Census Tract: </b>" + p.NAME.split(";")[0] +
+                                "<br><b>Population: </b>" + p.E_TOTPOP.toLocaleString() +
+                                "<br><b>Overall SVI Score: </b>" + (p.SVI * 100).toFixed(1) + "th percentile" +
+                                "<br><b>Socioeconomic Status: </b>" + (p.RPL_THEME1 * 100).toFixed(1) + "th percentile" +
+                                "<br><b>Household Characteristics: </b>" + (p.RPL_THEME2 * 100).toFixed(1) + "th percentile" +
+                                "<br><b>Racial & Ethnic Minority Status: </b>" + (p.RPL_THEME3 * 100).toFixed(1) + "th percentile" +
+                                "<br><b>Housing Type & Transportation: </b>" + (p.RPL_THEME4 * 100).toFixed(1) + "th percentile"
                             );
-
+                        
                         }
 
                     }
