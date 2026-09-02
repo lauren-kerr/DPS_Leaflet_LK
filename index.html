@@ -2047,17 +2047,20 @@
 
                         },
 
-                        onEachFeature: function (
-                            feature,
-                            layer
-                        ) {
+                       onEachFeature: function (
+    feature,
+    layer
+) {
 
-                            layer.bindPopup(
-                                "<strong>Highest SVI Census Tract</strong><br><br>" +
-                                createPopup(feature)
-                            );
+    var p = feature.properties;
+    var name = p.tract_name ? p.tract_name.split(";")[0] : (p.NAME || "");
+    layer.bindPopup(
+        "<b>Highest SVI Census Tract</b>" +
+        "<br><b>Name: </b>" + name +
+        "<br><b>SVI Score: </b>" + (p.SVI * 100).toFixed(1) + "th percentile"
+    );
 
-                        }
+}
 
                     }
                 );
