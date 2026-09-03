@@ -712,7 +712,7 @@
         "<b>Census Tract: </b>" + p.NAME.split(";")[0] +
         "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
         "<br><b>Population: </b>" + p.E_TOTPOP.toLocaleString() +
-        "<br><b>SVI Score: </b>" + p.SVI.toFixed(4) +
+        "<br><b>SVI Score: </b>" + p.SVI.toFixed(2) +
         "<br><b>Below 150% Poverty: </b>" + p.EP_POV150.toFixed(1) + "%" +
         "<br><b>Unemployed: </b>" + p.EP_UNEMP.toFixed(1) + "%" +
         "<br><b>Housing Cost Burdened: </b>" + p.EP_HBURD.toFixed(1) + "%" +
@@ -1993,7 +1993,7 @@
                                     "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
                                     "<br><b>School Type: </b>" + (p.classifica || "N/A") +
                                     "<br><b>Address: </b>" + (p.address_li || "") + ", " + (p.city || "") + " " + (p.zip || "") +
-                                    "<br><b>SRI Score: </b>" + p.SRI_SCORE.toFixed(1)
+                                    "<br><b>SRI Score: </b>" + p.SRI_SCORE.toFixed(2)
                                 );
 
                             }
@@ -2298,7 +2298,7 @@
     layer.bindPopup(
         "<b>Highest SVI Census Tract</b>" +
         "<br><b>Name: </b>" + name +
-        "<br><b>SVI Score: </b>" + p.SVI.toFixed(4)
+        "<br><b>SVI Score: </b>" + p.SVI.toFixed(2)
     );
 
 }
