@@ -39,6 +39,7 @@
         }
 
         .info.legend .legend-section {
+            clear: both;
             margin-top: 10px;
             margin-bottom: 4px;
             font-weight: bold;
@@ -79,6 +80,40 @@
             width: 18px;
             height: 18px;
             margin-right: 8px;
+        }
+
+        /* Sequential colour ramp bar (school SRI score) */
+
+        .info.legend .ramp-bar {
+            clear: both;
+            width: 150px;
+            height: 12px;
+            margin: 4px 0 2px;
+            border: 1px solid #999;
+            background: linear-gradient(
+                to right,
+                #F5F500,
+                #F5B800,
+                #F57A00,
+                #F53D00,
+                #F50000
+            );
+        }
+
+        .info.legend .ramp-labels {
+            clear: both;
+            display: flex;
+            justify-content: space-between;
+            width: 152px;
+            font-size: 11px;
+            color: #555;
+        }
+
+        .info.legend .legend-note {
+            clear: both;
+            font-size: 11px;
+            color: #555;
+            margin-bottom: 2px;
         }
 
         /* ============================================================
@@ -308,6 +343,25 @@
             if (value > 0.2) return "#F5B800";
 
             return "#F5F500";
+        }
+
+
+        // ============================================================
+        // RESOURCE MARKER ICONS
+        // ============================================================
+
+        // Simple emoji marker for point resources (rec centers,
+        // farmers markets, skate parks). Also used in the legend.
+        function emojiDivIcon(emoji) {
+
+            return L.divIcon({
+                className: '',
+                html: '<div style="font-size:16px;line-height:20px;' +
+                    'text-align:center;">' + emoji + '</div>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10],
+                popupAnchor: [0, -10]
+            });
         }
 
 
@@ -1259,15 +1313,11 @@
 
 
                     collectPointObstacles(
-                        schools
-                    );
-
-                    collectPointObstacles(
                         traditionalSchools
                     );
 
                     collectPointObstacles(
-                        alternativeSchools
+                        alternativePathwaySchools
                     );
 
                     collectPointObstacles(
@@ -1857,165 +1907,117 @@
                 // Colored by SRI_SCORE
                 // ========================================================
 
-                var schools = L.geoJSON(
-                    schoolsData,
-                    {
-                        pane: 'pointPane',
+                // Two school layers, both built from Schools.geojson and
+                // coloured by SRI score. The curated Traditional_Schools
+                // / Alternative_Schools files are used only to (a) split
+                // the layers and (b) flag the highlighted "top 5".
+                var schoolName = function (props) {
+                    return (props.school_nam || props.school_n_1 || "")
+                        .trim()
+                        .toLowerCase();
+                };
 
-                        pointToLayer: function (
-                            feature,
-                            latlng
-                        ) {
-
-                            return L.circleMarker(
-                                latlng,
-                                {
-                                    pane: 'pointPane',
-                                    radius: 6,
-
-                                    fillColor: getSchoolColor(
-                                        feature.properties.SRI_SCORE
-                                    ),
-
-                                    color: "#000000",
-
-                                    weight: 1,
-
-                                    fillOpacity: 1
-
-                                }
-                            );
-
-                        },
-
-                        onEachFeature: function (
-                            feature,
-                            layer
-                        ) {
-
-                            var p = feature.properties;
-                            layer.bindPopup(
-                                "<b>School: </b>" + (p.school_n_1 || p.school_nam || "") +
-                                "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
-                                "<br><b>School Type: </b>" + (p.classifica || "N/A") +
-                                "<br><b>Address: </b>" + (p.address_li || "") + ", " + (p.city || "") + " " + (p.zip || "") +
-                                "<br><b>SRI Score: </b>" + p.SRI_SCORE.toFixed(1)
-                            );
-
+                var nameSetFrom = function (fc) {
+                    var set = {};
+                    fc.features.forEach(function (f) {
+                        var n = schoolName(f.properties);
+                        if (n) {
+                            set[n] = true;
                         }
+                    });
+                    return set;
+                };
 
-                    }
-                );
+                var topTraditionalNames = nameSetFrom(traditionalSchoolsData);
+                var alternativeNames = nameSetFrom(alternativeSchoolsData);
+
+                function makeSchoolLayer(opts) {
+
+                    return L.geoJSON(
+                        schoolsData,
+                        {
+                            pane: 'pointPane',
+
+                            filter: opts.filter,
+
+                            pointToLayer: function (feature, latlng) {
+
+                                var highlight = opts.isHighlighted(
+                                    feature.properties
+                                );
+
+                                return L.circleMarker(
+                                    latlng,
+                                    {
+                                        pane: 'pointPane',
+                                        radius: highlight ? 8 : 6,
+                                        fillColor: getSchoolColor(
+                                            feature.properties.SRI_SCORE
+                                        ),
+                                        color: highlight
+                                            ? opts.highlightColor
+                                            : "#000000",
+                                        weight: highlight ? 3 : 1,
+                                        fillOpacity: 1
+                                    }
+                                );
+
+                            },
+
+                            onEachFeature: function (feature, layer) {
+
+                                var p = feature.properties;
+                                layer.bindPopup(
+                                    "<b>School: </b>" + (p.school_n_1 || p.school_nam || "") +
+                                    "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
+                                    "<br><b>School Type: </b>" + (p.classifica || "N/A") +
+                                    "<br><b>Address: </b>" + (p.address_li || "") + ", " + (p.city || "") + " " + (p.zip || "") +
+                                    "<br><b>SRI Score: </b>" + p.SRI_SCORE.toFixed(1)
+                                );
+
+                            }
+                        }
+                    );
+                }
 
 
                 // ========================================================
                 // TRADITIONAL SCHOOLS
+                // Everything except the curated Alternative/Pathway list.
+                // Top 5 (Traditional_Schools.geojson) get a thick green
+                // border and a larger radius.
                 // ========================================================
 
-                var traditionalSchools = L.geoJSON(
-                    traditionalSchoolsData,
-                    {
-
-                        pane: 'pointPane',
-
-                        pointToLayer: function (
-                            feature,
-                            latlng
-                        ) {
-
-                            return L.circleMarker(
-                                latlng,
-                                {
-                                    pane: 'pointPane',
-                                    radius: 6,
-
-                                    fillColor: "#008000",
-
-                                    color: "#FFFFFF",
-
-                                    weight: 1,
-
-                                    fillOpacity: 1
-
-                                }
-                            );
-
-                        },
-
-                        onEachFeature: function (
-                            feature,
-                            layer
-                        ) {
-
-                            var p = feature.properties;
-                            layer.bindPopup(
-                                "<strong>Traditional School</strong><br><br>" +
-                                "<b>School: </b>" + (p.school_n_1 || p.school_nam || "") +
-                                "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
-                                "<br><b>School Type: </b>" + (p.classifica || "N/A") +
-                                "<br><b>Address: </b>" + (p.address_li || "") + ", " + (p.city || "") + " " + (p.zip || "") +
-                                "<br><b>SRI Score: </b>" + p.SRI_SCORE.toFixed(1)
-                            );
-
-                        }
-
-                    }
-                );
+                var traditionalSchools = makeSchoolLayer({
+                    filter: function (feature) {
+                        return !alternativeNames[
+                            schoolName(feature.properties)
+                        ];
+                    },
+                    isHighlighted: function (props) {
+                        return !!topTraditionalNames[schoolName(props)];
+                    },
+                    highlightColor: "#008000"
+                });
 
 
                 // ========================================================
-                // ALTERNATIVE SCHOOLS
+                // ALTERNATIVE / PATHWAY SCHOOLS
+                // The curated Alternative_Schools.geojson list. All of
+                // them get a thick purple border and a larger radius.
                 // ========================================================
 
-                var alternativeSchools = L.geoJSON(
-                    alternativeSchoolsData,
-                    {
-
-                        pane: 'pointPane',
-
-                        pointToLayer: function (
-                            feature,
-                            latlng
-                        ) {
-
-                            return L.circleMarker(
-                                latlng,
-                                {
-                                    pane: 'pointPane',
-                                    radius: 6,
-
-                                    fillColor: "#800080",
-
-                                    color: "#FFFFFF",
-
-                                    weight: 1,
-
-                                    fillOpacity: 1
-
-                                }
-                            );
-
-                        },
-
-                        onEachFeature: function (
-                            feature,
-                            layer
-                        ) {
-
-                            var p = feature.properties;
-                            layer.bindPopup(
-                                "<strong>Alternative School</strong><br><br>" +
-                                "<b>School: </b>" + (p.school_n_1 || p.school_nam || "") +
-                                "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
-                                "<br><b>School Type: </b>" + (p.classifica || "N/A") +
-                                "<br><b>Address: </b>" + (p.address_li || "") + ", " + (p.city || "") + " " + (p.zip || "") +
-                                "<br><b>SRI Score: </b>" + p.SRI_SCORE.toFixed(1)
-                            );
-
-                        }
-
-                    }
-                );
+                var alternativePathwaySchools = makeSchoolLayer({
+                    filter: function (feature) {
+                        return !!alternativeNames[
+                            schoolName(feature.properties)
+                        ];
+                    },
+                    isHighlighted: function () {
+                        return true;
+                    },
+                    highlightColor: "#800080"
+                });
 
 
                 // ========================================================
@@ -2033,20 +2035,11 @@
                             latlng
                         ) {
 
-                            return L.circleMarker(
+                            return L.marker(
                                 latlng,
                                 {
                                     pane: 'pointPane',
-                                    radius: 4,
-
-                                    fillColor: "#4CE600",
-
-                                    color: "#FFFFFF",
-
-                                    weight: 1,
-
-                                    fillOpacity: 1
-
+                                    icon: emojiDivIcon('🌟')
                                 }
                             );
 
@@ -2087,20 +2080,11 @@
                             latlng
                         ) {
 
-                            return L.circleMarker(
+                            return L.marker(
                                 latlng,
                                 {
                                     pane: 'pointPane',
-                                    radius: 4,
-
-                                    fillColor: "#0070FF",
-
-                                    color: "#FFFFFF",
-
-                                    weight: 1,
-
-                                    fillOpacity: 1
-
+                                    icon: emojiDivIcon('🏢')
                                 }
                             );
 
@@ -2140,13 +2124,9 @@
                     {
                         pane: 'pointPane',
                         pointToLayer: function (feature, latlng) {
-                            return L.circleMarker(latlng, {
+                            return L.marker(latlng, {
                                 pane: 'pointPane',
-                                radius: 4,
-                                fillColor: "#FF8C00",
-                                color: "#FFFFFF",
-                                weight: 1,
-                                fillOpacity: 1
+                                icon: emojiDivIcon('🥕')
                             });
                         },
                         onEachFeature: function (feature, layer) {
@@ -2173,18 +2153,28 @@
                         pane: 'neighborhoodPane',
                         style: {
                             color: "#228B22",
-                            weight: 1,
+                            weight: 1.5,
                             opacity: 1,
+                            dashArray: "4 4",
                             fillColor: "#228B22",
-                            fillOpacity: 0.3
+                            fillOpacity: 0.15
                         },
                         onEachFeature: function (feature, layer) {
                             var p = feature.properties;
                             layer.bindPopup(
                                 "<b>Park: </b>" + (p.LOCATION || p.FORMAL_NAME || "") +
                                 "<br><b>Type: </b>" + (p.PARK_CLASS || "N/A") +
-                                "<br><b>Address: </b>" + (p.ADDRESS_LINE1 || "") + ", " + (p.CITY || "") + " " + (p.ZIP || "")
+                                "<br><b>Address: </b>" + (p.ADDRESS_LINE1 || "") + ", " + (p.CITY || "") + " " + (p.ZIP || "") +
+                                "<br><b>Acreage: </b>" + (p.GIS_ACRES ? p.GIS_ACRES.toFixed(1) + " acres" : "N/A")
                             );
+
+                            layer.on('mouseover', function () {
+                                this.setStyle({ fillOpacity: 0.4 });
+                            });
+
+                            layer.on('mouseout', function () {
+                                this.setStyle({ fillOpacity: 0.15 });
+                            });
                         }
                     }
                 );
@@ -2228,13 +2218,9 @@
                     {
                         pane: 'pointPane',
                         pointToLayer: function (feature, latlng) {
-                            return L.circleMarker(latlng, {
+                            return L.marker(latlng, {
                                 pane: 'pointPane',
-                                radius: 4,
-                                fillColor: "#FF1493",
-                                color: "#FFFFFF",
-                                weight: 1,
-                                fillOpacity: 1
+                                icon: emojiDivIcon('🛹')
                             });
                         },
                         onEachFeature: function (feature, layer) {
@@ -2298,11 +2284,9 @@
 
                 countyBoundary.addTo(map);
 
-                schools.addTo(map);
-
                 traditionalSchools.addTo(map);
 
-                alternativeSchools.addTo(map);
+                alternativePathwaySchools.addTo(map);
 
                 fiveHighestCensusTracts.addTo(map);
 
@@ -2348,18 +2332,17 @@
                     },
 
                     {
-                        "Census Tracts": censusTracts,
+                        "🗺️ Census Tract SVI": censusTracts,
                         "County Boundary": countyBoundary,
                         "Neighborhoods": neighborhoods,
-                        "Schools": schools,
-                        "Traditional Schools": traditionalSchools,
-                        "Alternative Schools": alternativeSchools,
-                        "Recreation Centers": recreationCenters,
-                        "SUD Facilities": sudFacilities,
-                        "Farmers Markets": farmersMarkets,
-                        "Parks": parks,
-                        "Skate Parks": skateParks,
-                        "Five Highest SVI Tracts": fiveHighestCensusTracts
+                        "🏫 Traditional Schools": traditionalSchools,
+                        "🏫 Alternative/Pathway Schools": alternativePathwaySchools,
+                        "🌟 Recreation Centers": recreationCenters,
+                        "💊 SUD Facilities": sudFacilities,
+                        "🥕 Farmers Markets": farmersMarkets,
+                        "🌳 Parks": parks,
+                        "🛹 Skate Parks": skateParks,
+                        "⚠️ Highest SVI Tracts": fiveHighestCensusTracts
                     },
 
                     {
@@ -2465,115 +2448,32 @@
                     // SCHOOLS
                     // ====================================================
 
-                    if (map.hasLayer(schools)) {
+                    if (map.hasLayer(traditionalSchools) ||
+                        map.hasLayer(alternativePathwaySchools)) {
 
                         div.innerHTML +=
                             '<div class="legend-section">' +
-                            'Schools — SRI Score' +
+                            'Schools — SRI Score</div>';
+
+                        div.innerHTML += '<div class="ramp-bar"></div>';
+
+                        div.innerHTML +=
+                            '<div class="ramp-labels">' +
+                            '<span>Lower need</span>' +
+                            '<span>Higher need</span>' +
                             '</div>';
 
-
-                        // Low SRI
+                        div.innerHTML +=
+                            '<i class="circle-symbol" style="' +
+                            'background:#CCCCCC;' +
+                            'border:3px solid #008000' +
+                            '"></i>Large green border = Top 5 Traditional<br>';
 
                         div.innerHTML +=
-                            '<i class="circle-symbol" ' +
-                            'style="' +
-                            'background:#F5F500;' +
-                            'border:1px solid #000000' +
-                            '"></i>' +
-                            'Low<br>';
-
-
-                        // Low - Moderate
-
-                        div.innerHTML +=
-                            '<i class="circle-symbol" ' +
-                            'style="' +
-                            'background:#F5B800;' +
-                            'border:1px solid #000000' +
-                            '"></i>' +
-                            'Low - Moderate<br>';
-
-
-                        // Moderate
-
-                        div.innerHTML +=
-                            '<i class="circle-symbol" ' +
-                            'style="' +
-                            'background:#F57A00;' +
-                            'border:1px solid #000000' +
-                            '"></i>' +
-                            'Moderate<br>';
-
-
-                        // Moderate - High
-
-                        div.innerHTML +=
-                            '<i class="circle-symbol" ' +
-                            'style="' +
-                            'background:#F53D00;' +
-                            'border:1px solid #000000' +
-                            '"></i>' +
-                            'Moderate - High<br>';
-
-
-                        // High
-
-                        div.innerHTML +=
-                            '<i class="circle-symbol" ' +
-                            'style="' +
-                            'background:#F50000;' +
-                            'border:1px solid #000000' +
-                            '"></i>' +
-                            'High<br>';
-
-                    }
-
-
-                    // ====================================================
-                    // TRADITIONAL SCHOOLS
-                    // ====================================================
-
-                    if (map.hasLayer(traditionalSchools)) {
-
-                        div.innerHTML +=
-                            '<div class="legend-section">' +
-                            'School Types' +
-                            '</div>';
-
-
-                        div.innerHTML +=
-                            '<i class="circle-symbol" ' +
-                            'style="' +
-                            'background:#008000;' +
-                            'border:1px solid #FFFFFF' +
-                            '"></i>' +
-                            'Top 5 Traditional Schools<br>';
-                    }
-
-
-                    // ====================================================
-                    // ALTERNATIVE SCHOOLS
-                    // ====================================================
-
-                    if (map.hasLayer(alternativeSchools)) {
-
-                        if (!map.hasLayer(traditionalSchools)) {
-
-                            div.innerHTML +=
-                                '<div class="legend-section">' +
-                                'School Types' +
-                                '</div>';
-                        }
-
-
-                        div.innerHTML +=
-                            '<i class="circle-symbol" ' +
-                            'style="' +
-                            'background:#800080;' +
-                            'border:1px solid #FFFFFF' +
-                            '"></i>' +
-                            'Top 5 Alternative Schools<br>';
+                            '<i class="circle-symbol" style="' +
+                            'background:#CCCCCC;' +
+                            'border:3px solid #800080' +
+                            '"></i>Large purple border = Top 5 Alternative<br>';
                     }
 
 
@@ -2636,12 +2536,7 @@
 
 
                         div.innerHTML +=
-                            '<i class="circle-symbol" ' +
-                            'style="' +
-                            'background:#4CE600;' +
-                            'border:1px solid #FFFFFF' +
-                            '"></i>' +
-                            'Recreation Centers<br>';
+                            '🌟 Recreation Centers<br>';
                     }
 
 
@@ -2662,12 +2557,7 @@
 
 
                         div.innerHTML +=
-                            '<i class="circle-symbol" ' +
-                            'style="' +
-                            'background:#0070FF;' +
-                            'border:1px solid #FFFFFF' +
-                            '"></i>' +
-                            'SUD Facilities<br>';
+                            '🏢 SUD Facilities<br>';
                     }
 
 
@@ -2689,12 +2579,7 @@
 
 
                         div.innerHTML +=
-                            '<i class="circle-symbol" ' +
-                            'style="' +
-                            'background:#FF8C00;' +
-                            'border:1px solid #FFFFFF' +
-                            '"></i>' +
-                            'Farmers Markets<br>';
+                            '🥕 Farmers Markets<br>';
                     }
 
 
@@ -2717,12 +2602,7 @@
 
 
                         div.innerHTML +=
-                            '<i class="circle-symbol" ' +
-                            'style="' +
-                            'background:#FF1493;' +
-                            'border:1px solid #FFFFFF' +
-                            '"></i>' +
-                            'Skate Parks<br>';
+                            '🛹 Skate Parks<br>';
                     }
 
 
