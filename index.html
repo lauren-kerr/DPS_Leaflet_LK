@@ -591,7 +591,7 @@
         "<b>Census Tract: </b>" + p.NAME.split(";")[0] +
         "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
         "<br><b>Population: </b>" + p.E_TOTPOP.toLocaleString() +
-        "<br><b>Overall SVI Score: </b>" + (p.SVI * 100).toFixed(1) + "th percentile" +
+        "<br><b>Overall SVI Score: </b>" + p.SVI.toFixed(4) +
         "<br><b>Below 150% Poverty: </b>" + p.EP_POV150.toFixed(1) + "%" +
         "<br><b>Unemployed: </b>" + p.EP_UNEMP.toFixed(1) + "%" +
         "<br><b>Housing Cost Burdened: </b>" + p.EP_HBURD.toFixed(1) + "%" +
@@ -1826,9 +1826,14 @@
                             layer
                         ) {
 
+                            var p = feature.properties;
                             layer.bindPopup(
-                                "<strong>School</strong><br><br>" +
-                                createPopup(feature)
+                                "<b>School: </b>" + (p.school_n_1 || p.school_nam || "") +
+                                "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
+                                "<br><b>Grade Levels: </b>" + (p.grade_leve || "N/A") +
+                                "<br><b>School Type: </b>" + (p.classifica || "N/A") +
+                                "<br><b>Address: </b>" + (p.address_li || "") + ", " + (p.city || "") + " " + (p.zip || "") +
+                                "<br><b>SRI Score: </b>" + (p.SRI_SCORE * 100).toFixed(1) + "th percentile"
                             );
 
                         }
@@ -1876,9 +1881,14 @@
                             layer
                         ) {
 
+                            var p = feature.properties;
                             layer.bindPopup(
-                                "<strong>Traditional School</strong><br><br>" +
-                                createPopup(feature)
+                                "<b>School: </b>" + (p.school_n_1 || p.school_nam || "") +
+                                "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
+                                "<br><b>Grade Levels: </b>" + (p.grade_leve || "N/A") +
+                                "<br><b>School Type: </b>" + (p.classifica || "N/A") +
+                                "<br><b>Address: </b>" + (p.address_li || "") + ", " + (p.city || "") + " " + (p.zip || "") +
+                                "<br><b>SRI Score: </b>" + (p.SRI_SCORE * 100).toFixed(1) + "th percentile"
                             );
 
                         }
@@ -1926,9 +1936,14 @@
                             layer
                         ) {
 
+                            var p = feature.properties;
                             layer.bindPopup(
-                                "<strong>Alternative School</strong><br><br>" +
-                                createPopup(feature)
+                                "<b>School: </b>" + (p.school_n_1 || p.school_nam || "") +
+                                "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
+                                "<br><b>Grade Levels: </b>" + (p.grade_leve || "N/A") +
+                                "<br><b>School Type: </b>" + (p.classifica || "N/A") +
+                                "<br><b>Address: </b>" + (p.address_li || "") + ", " + (p.city || "") + " " + (p.zip || "") +
+                                "<br><b>SRI Score: </b>" + (p.SRI_SCORE * 100).toFixed(1) + "th percentile"
                             );
 
                         }
@@ -2071,7 +2086,7 @@
     layer.bindPopup(
         "<b>Highest SVI Census Tract</b>" +
         "<br><b>Name: </b>" + name +
-        "<br><b>SVI Score: </b>" + (p.SVI * 100).toFixed(1) + "th percentile"
+        "<br><b>SVI Score: </b>" + p.SVI.toFixed(4)
     );
 
 }
