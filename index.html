@@ -9,8 +9,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
+        body {
+            margin: 0;
+        }
+
         #map {
-            height: 600px;
+            height: 100vh;
         }
 
         /* ============================================================
@@ -141,8 +145,6 @@
 
 <body>
 
-    <h1>Denver Social Vulnerability Map</h1>
-
     <div id="map"></div>
 
 
@@ -161,6 +163,11 @@
             [39.7392, -104.9903],
             10
         );
+
+
+        // Cap every popup's width so they don't run off the
+        // right edge of the screen (applies to all bindPopup calls).
+        L.Popup.mergeOptions({ maxWidth: 350 });
 
 
         // ============================================================
@@ -316,13 +323,13 @@
                     feature.properties.SVI
                 ),
 
-                weight: 0.5,
+                weight: 0.3,
 
                 opacity: 1,
 
-                color: "#000000",
+                color: "#333333",
 
-                fillOpacity: 1
+                fillOpacity: 0.6
             };
         }
 
@@ -530,6 +537,63 @@
                     }
 
                     return response.json();
+                }),
+
+
+            // --------------------------------------------------------
+            // FARMERS MARKETS
+            // --------------------------------------------------------
+
+            fetch('Data/Farmers_Markets.geojson')
+                .then(response => {
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "Could not load Farmers_Markets.geojson: " +
+                            response.status
+                        );
+                    }
+
+                    return response.json();
+                }),
+
+
+            // --------------------------------------------------------
+            // PARKS
+            // --------------------------------------------------------
+
+            fetch('Data/Parks.geojson')
+                .then(response => {
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "Could not load Parks.geojson: " +
+                            response.status
+                        );
+                    }
+
+                    return response.json();
+                }),
+
+
+            // --------------------------------------------------------
+            // SKATE PARKS
+            // --------------------------------------------------------
+
+            fetch('Data/SkateParks.geojson')
+                .then(response => {
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "Could not load SkateParks.geojson: " +
+                            response.status
+                        );
+                    }
+
+                    return response.json();
                 })
         ])
             // ============================================================
@@ -556,6 +620,9 @@
                 var recreationData = data[6];
                 var sudData = data[7];
                 var highestData = data[8];
+                var farmersMarketsData = data[9];
+                var parksData = data[10];
+                var skateParksData = data[11];
 
 
                 console.log(
@@ -591,7 +658,7 @@
         "<b>Census Tract: </b>" + p.NAME.split(";")[0] +
         "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
         "<br><b>Population: </b>" + p.E_TOTPOP.toLocaleString() +
-        "<br><b>Overall SVI Score: </b>" + p.SVI.toFixed(4) +
+        "<br><b>SVI Score: </b>" + p.SVI.toFixed(4) +
         "<br><b>Below 150% Poverty: </b>" + p.EP_POV150.toFixed(1) + "%" +
         "<br><b>Unemployed: </b>" + p.EP_UNEMP.toFixed(1) + "%" +
         "<br><b>Housing Cost Burdened: </b>" + p.EP_HBURD.toFixed(1) + "%" +
@@ -656,9 +723,9 @@
 
                         style: {
 
-                            color: "#000000",
+                            color: "#444444",
 
-                            weight: 2,
+                            weight: 1.5,
 
                             opacity: 1,
 
@@ -1830,10 +1897,9 @@
                             layer.bindPopup(
                                 "<b>School: </b>" + (p.school_n_1 || p.school_nam || "") +
                                 "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
-                                "<br><b>Grade Levels: </b>" + (p.grade_leve || "N/A") +
                                 "<br><b>School Type: </b>" + (p.classifica || "N/A") +
                                 "<br><b>Address: </b>" + (p.address_li || "") + ", " + (p.city || "") + " " + (p.zip || "") +
-                                "<br><b>SRI Score: </b>" + (p.SRI_SCORE * 100).toFixed(1) + "th percentile"
+                                "<br><b>SRI Score: </b>" + p.SRI_SCORE.toFixed(1)
                             );
 
                         }
@@ -1883,12 +1949,12 @@
 
                             var p = feature.properties;
                             layer.bindPopup(
+                                "<strong>Traditional School</strong><br><br>" +
                                 "<b>School: </b>" + (p.school_n_1 || p.school_nam || "") +
                                 "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
-                                "<br><b>Grade Levels: </b>" + (p.grade_leve || "N/A") +
                                 "<br><b>School Type: </b>" + (p.classifica || "N/A") +
                                 "<br><b>Address: </b>" + (p.address_li || "") + ", " + (p.city || "") + " " + (p.zip || "") +
-                                "<br><b>SRI Score: </b>" + (p.SRI_SCORE * 100).toFixed(1) + "th percentile"
+                                "<br><b>SRI Score: </b>" + p.SRI_SCORE.toFixed(1)
                             );
 
                         }
@@ -1938,12 +2004,12 @@
 
                             var p = feature.properties;
                             layer.bindPopup(
+                                "<strong>Alternative School</strong><br><br>" +
                                 "<b>School: </b>" + (p.school_n_1 || p.school_nam || "") +
                                 "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
-                                "<br><b>Grade Levels: </b>" + (p.grade_leve || "N/A") +
                                 "<br><b>School Type: </b>" + (p.classifica || "N/A") +
                                 "<br><b>Address: </b>" + (p.address_li || "") + ", " + (p.city || "") + " " + (p.zip || "") +
-                                "<br><b>SRI Score: </b>" + (p.SRI_SCORE * 100).toFixed(1) + "th percentile"
+                                "<br><b>SRI Score: </b>" + p.SRI_SCORE.toFixed(1)
                             );
 
                         }
@@ -1991,9 +2057,13 @@
                             layer
                         ) {
 
+                            var p = feature.properties;
                             layer.bindPopup(
-                                "<strong>Recreation Center</strong><br><br>" +
-                                createPopup(feature)
+                                "<b>Recreation Center: </b>" + (p.REC_NAME || "") +
+                                "<br><b>Type: </b>" + (p.REC_TYPE || "N/A") +
+                                "<br><b>Address: </b>" + (p.ADDRESS_LI || "") + ", Denver " + (p.ZIP || "") +
+                                "<br><b>Phone: </b>" + (p.PHONE || "N/A") +
+                                "<br><b>Programs: </b>" + (p.MARKETED_P || "N/A")
                             );
 
                         }
@@ -2041,13 +2111,138 @@
                             layer
                         ) {
 
+                            var p = feature.properties;
+                            var services = [];
+                            if (p.SA == 1) services.push("Substance Abuse");
+                            if (p.MU == 1) services.push("Mental Health");
+                            if (p.DT == 1) services.push("Detox");
+                            if (p.HH == 1) services.push("Halfway House");
+                            if (p.OIT == 1) services.push("Opioid Treatment");
+
                             layer.bindPopup(
-                                "<strong>SUD Facility</strong><br><br>" +
-                                createPopup(feature)
+                                "<b>Treatment Facility: </b>" + (p.FacilityNa || "") +
+                                "<br><b>Address: </b>" + (p.Address || "") +
+                                "<br><b>Services: </b>" + (services.length > 0 ? services.join(", ") : "N/A")
                             );
 
                         }
 
+                    }
+                );
+
+
+                // ========================================================
+                // FARMERS MARKETS
+                // ========================================================
+
+                var farmersMarkets = L.geoJSON(
+                    farmersMarketsData,
+                    {
+                        pane: 'pointPane',
+                        pointToLayer: function (feature, latlng) {
+                            return L.circleMarker(latlng, {
+                                pane: 'pointPane',
+                                radius: 4,
+                                fillColor: "#FF8C00",
+                                color: "#FFFFFF",
+                                weight: 1,
+                                fillOpacity: 1
+                            });
+                        },
+                        onEachFeature: function (feature, layer) {
+                            var p = feature.properties;
+                            layer.bindPopup(
+                                "<b>Farmers Market: </b>" + (p.NAME || "") +
+                                "<br><b>Address: </b>" + (p.ADDRESS || "") + ", " + (p.CITY || "") + " " + (p.ZIP || "") +
+                                "<br><b>Season: </b>" + (p.STATUS || "N/A") +
+                                "<br><b>SNAP Accepted: </b>" + (p.SNAP || "N/A") +
+                                "<br><b>Double Up Food Bucks: </b>" + (p.DOUBLE_UP_ || "N/A")
+                            );
+                        }
+                    }
+                );
+
+
+                // ========================================================
+                // PARKS
+                // ========================================================
+
+                var parks = L.geoJSON(
+                    parksData,
+                    {
+                        pane: 'neighborhoodPane',
+                        style: {
+                            color: "#228B22",
+                            weight: 1,
+                            opacity: 1,
+                            fillColor: "#228B22",
+                            fillOpacity: 0.3
+                        },
+                        onEachFeature: function (feature, layer) {
+                            var p = feature.properties;
+                            layer.bindPopup(
+                                "<b>Park: </b>" + (p.LOCATION || p.FORMAL_NAME || "") +
+                                "<br><b>Type: </b>" + (p.PARK_CLASS || "N/A") +
+                                "<br><b>Address: </b>" + (p.ADDRESS_LINE1 || "") + ", " + (p.CITY || "") + " " + (p.ZIP || "")
+                            );
+                        }
+                    }
+                );
+
+
+                // ========================================================
+                // SKATE PARKS
+                // ========================================================
+                // Source geometry is polygons; render each as a single
+                // marker placed at the polygon centroid.
+
+                var skateParkPoints = {
+                    type: "FeatureCollection",
+                    features: skateParksData.features.map(function (f) {
+
+                        var ring = f.geometry.coordinates[0];
+                        var sx = 0;
+                        var sy = 0;
+
+                        for (var i = 0; i < ring.length; i++) {
+                            sx += ring[i][0];
+                            sy += ring[i][1];
+                        }
+
+                        return {
+                            type: "Feature",
+                            properties: f.properties,
+                            geometry: {
+                                type: "Point",
+                                coordinates: [
+                                    sx / ring.length,
+                                    sy / ring.length
+                                ]
+                            }
+                        };
+                    })
+                };
+
+                var skateParks = L.geoJSON(
+                    skateParkPoints,
+                    {
+                        pane: 'pointPane',
+                        pointToLayer: function (feature, latlng) {
+                            return L.circleMarker(latlng, {
+                                pane: 'pointPane',
+                                radius: 4,
+                                fillColor: "#FF1493",
+                                color: "#FFFFFF",
+                                weight: 1,
+                                fillOpacity: 1
+                            });
+                        },
+                        onEachFeature: function (feature, layer) {
+                            var p = feature.properties;
+                            layer.bindPopup(
+                                "<b>Skate Park: </b>" + (p.LOCATION || "")
+                            );
+                        }
                     }
                 );
 
@@ -2072,7 +2267,7 @@
 
                             fillColor: "#A80000",
 
-                            fillOpacity: 1
+                            fillOpacity: 0.7
 
                         },
 
@@ -2161,6 +2356,9 @@
                         "Alternative Schools": alternativeSchools,
                         "Recreation Centers": recreationCenters,
                         "SUD Facilities": sudFacilities,
+                        "Farmers Markets": farmersMarkets,
+                        "Parks": parks,
+                        "Skate Parks": skateParks,
                         "Five Highest SVI Tracts": fiveHighestCensusTracts
                     },
 
@@ -2470,6 +2668,61 @@
                             'border:1px solid #FFFFFF' +
                             '"></i>' +
                             'SUD Facilities<br>';
+                    }
+
+
+                    // ====================================================
+                    // FARMERS MARKETS
+                    // Protective Layer
+                    // ====================================================
+
+                    if (map.hasLayer(farmersMarkets)) {
+
+                        if (!map.hasLayer(recreationCenters) &&
+                            !map.hasLayer(sudFacilities)) {
+
+                            div.innerHTML +=
+                                '<div class="legend-section">' +
+                                'Protective Layers' +
+                                '</div>';
+                        }
+
+
+                        div.innerHTML +=
+                            '<i class="circle-symbol" ' +
+                            'style="' +
+                            'background:#FF8C00;' +
+                            'border:1px solid #FFFFFF' +
+                            '"></i>' +
+                            'Farmers Markets<br>';
+                    }
+
+
+                    // ====================================================
+                    // SKATE PARKS
+                    // Protective Layer
+                    // ====================================================
+
+                    if (map.hasLayer(skateParks)) {
+
+                        if (!map.hasLayer(recreationCenters) &&
+                            !map.hasLayer(sudFacilities) &&
+                            !map.hasLayer(farmersMarkets)) {
+
+                            div.innerHTML +=
+                                '<div class="legend-section">' +
+                                'Protective Layers' +
+                                '</div>';
+                        }
+
+
+                        div.innerHTML +=
+                            '<i class="circle-symbol" ' +
+                            'style="' +
+                            'background:#FF1493;' +
+                            'border:1px solid #FFFFFF' +
+                            '"></i>' +
+                            'Skate Parks<br>';
                     }
 
 
