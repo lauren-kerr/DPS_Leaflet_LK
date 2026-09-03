@@ -582,24 +582,25 @@
                         style: censusStyle,
 
                      onEachFeature: function (
-                            feature,
-                            layer
-                        ) {
-                        
-                            var p = feature.properties;
-                            layer.bindPopup(
-                                "<b>Census Tract: </b>" + p.NAME.split(";")[0] +
-                                "<br><b>Population: </b>" + p.E_TOTPOP.toLocaleString() +
-                                "<br><b>Overall SVI Score: </b>" + (p.SVI * 100).toFixed(1) + "th percentile" +
-                                "<br><b>Socioeconomic Status: </b>" + (p.RPL_THEME1 * 100).toFixed(1) + "th percentile" +
-                                "<br><b>Household Characteristics: </b>" + (p.RPL_THEME2 * 100).toFixed(1) + "th percentile" +
-                                "<br><b>Racial & Ethnic Minority Status: </b>" + (p.RPL_THEME3 * 100).toFixed(1) + "th percentile" +
-                                "<br><b>Housing Type & Transportation: </b>" + (p.RPL_THEME4 * 100).toFixed(1) + "th percentile"
-                            );
-                        
-                        }
+    feature,
+    layer
+) {
 
-                    }
+    var p = feature.properties;
+    layer.bindPopup(
+        "<b>Census Tract: </b>" + p.NAME.split(";")[0] +
+        "<br><b>Neighborhood: </b>" + (p.NBHD_NAME || "N/A") +
+        "<br><b>Population: </b>" + p.E_TOTPOP.toLocaleString() +
+        "<br><b>Overall SVI Score: </b>" + (p.SVI * 100).toFixed(1) + "th percentile" +
+        "<br><b>Below 150% Poverty: </b>" + p.EP_POV150.toFixed(1) + "%" +
+        "<br><b>Unemployed: </b>" + p.EP_UNEMP.toFixed(1) + "%" +
+        "<br><b>Housing Cost Burdened: </b>" + p.EP_HBURD.toFixed(1) + "%" +
+        "<br><b>No High School Diploma: </b>" + p.EP_NOHSDP.toFixed(1) + "%" +
+        "<br><b>Uninsured: </b>" + p.EP_UNINSUR.toFixed(1) + "%" +
+        "<br><b>Single-Parent Households: </b>" + p.EP_SNGPNT.toFixed(1) + "%"
+    );
+
+}
                 );
 
 
