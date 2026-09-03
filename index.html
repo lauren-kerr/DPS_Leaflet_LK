@@ -1950,7 +1950,7 @@
                                     latlng,
                                     {
                                         pane: 'pointPane',
-                                        radius: highlight ? 8 : 6,
+                                        radius: highlight ? 8 : 7,
                                         fillColor: getSchoolColor(
                                             feature.properties.SRI_SCORE
                                         ),
@@ -2018,6 +2018,16 @@
                     },
                     highlightColor: "#800080"
                 });
+
+                console.log(
+                    "Traditional Schools features:",
+                    traditionalSchools.getLayers().length
+                );
+
+                console.log(
+                    "Alternative/Pathway Schools features:",
+                    alternativePathwaySchools.getLayers().length
+                );
 
 
                 // ========================================================
