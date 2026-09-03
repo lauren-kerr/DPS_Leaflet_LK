@@ -648,6 +648,44 @@
                     }
 
                     return response.json();
+                }),
+
+
+            // --------------------------------------------------------
+            // SWIMMING POOLS
+            // --------------------------------------------------------
+
+            fetch('Data/Swimming_Pools.geojson')
+                .then(response => {
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "Could not load Swimming_Pools.geojson: " +
+                            response.status
+                        );
+                    }
+
+                    return response.json();
+                }),
+
+
+            // --------------------------------------------------------
+            // LIBRARIES
+            // --------------------------------------------------------
+
+            fetch('Data/Libraries.geojson')
+                .then(response => {
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "Could not load Libraries.geojson: " +
+                            response.status
+                        );
+                    }
+
+                    return response.json();
                 })
         ])
             // ============================================================
@@ -677,6 +715,8 @@
                 var farmersMarketsData = data[9];
                 var parksData = data[10];
                 var skateParksData = data[11];
+                var swimmingPoolsData = data[12];
+                var librariesData = data[13];
 
 
                 console.log(
@@ -2265,6 +2305,59 @@
 
 
                 // ========================================================
+                // SWIMMING POOLS
+                // ========================================================
+
+                var swimmingPools = L.geoJSON(
+                    swimmingPoolsData,
+                    {
+                        pane: 'pointPane',
+                        pointToLayer: function (feature, latlng) {
+                            return L.marker(latlng, {
+                                pane: 'pointPane',
+                                icon: emojiDivIcon('🏊')
+                            });
+                        },
+                        onEachFeature: function (feature, layer) {
+                            var p = feature.properties;
+                            layer.bindPopup(
+                                "<b>Pool: </b>" + (p.POOL_NAME || "") +
+                                "<br><b>Location: </b>" + (p.PARK_LOCATION || "N/A") +
+                                "<br><b>Type: </b>" + (p.POOL_TYPE || "N/A") +
+                                "<br><b>Address: </b>" + (p.ADDRESS_LINE1 || "") + ", " + (p.CITY || "") + " " + (p.ZIP || "") +
+                                "<br><b>Phone: </b>" + (p.PHONE || "N/A")
+                            );
+                        }
+                    }
+                );
+
+
+                // ========================================================
+                // LIBRARIES
+                // ========================================================
+
+                var libraries = L.geoJSON(
+                    librariesData,
+                    {
+                        pane: 'pointPane',
+                        pointToLayer: function (feature, latlng) {
+                            return L.marker(latlng, {
+                                pane: 'pointPane',
+                                icon: emojiDivIcon('📚')
+                            });
+                        },
+                        onEachFeature: function (feature, layer) {
+                            var p = feature.properties;
+                            layer.bindPopup(
+                                "<b>Library: </b>" + (p.LIBRARY_NAME || "") +
+                                "<br><b>Address: </b>" + (p.ADDRESS_LINE1 || "") + ", " + (p.CITY || "") + " " + (p.ZIP || "")
+                            );
+                        }
+                    }
+                );
+
+
+                // ========================================================
                 // FIVE HIGHEST SVI CENSUS TRACTS
                 // ========================================================
 
@@ -2373,7 +2466,9 @@
                         "SUD Facilities": sudFacilities,
                         "Farmers Markets": farmersMarkets,
                         "Parks": parks,
-                        "Skate Parks": skateParks
+                        "Skate Parks": skateParks,
+                        "Swimming Pools": swimmingPools,
+                        "Libraries": libraries
                     },
 
                     {
@@ -2634,6 +2729,55 @@
 
                         div.innerHTML +=
                             '🛹 Skate Parks<br>';
+                    }
+
+
+                    // ====================================================
+                    // SWIMMING POOLS
+                    // Community Resource
+                    // ====================================================
+
+                    if (map.hasLayer(swimmingPools)) {
+
+                        if (!map.hasLayer(recreationCenters) &&
+                            !map.hasLayer(sudFacilities) &&
+                            !map.hasLayer(farmersMarkets) &&
+                            !map.hasLayer(skateParks)) {
+
+                            div.innerHTML +=
+                                '<div class="legend-section">' +
+                                'Community Resources' +
+                                '</div>';
+                        }
+
+
+                        div.innerHTML +=
+                            '🏊 Swimming Pools<br>';
+                    }
+
+
+                    // ====================================================
+                    // LIBRARIES
+                    // Community Resource
+                    // ====================================================
+
+                    if (map.hasLayer(libraries)) {
+
+                        if (!map.hasLayer(recreationCenters) &&
+                            !map.hasLayer(sudFacilities) &&
+                            !map.hasLayer(farmersMarkets) &&
+                            !map.hasLayer(skateParks) &&
+                            !map.hasLayer(swimmingPools)) {
+
+                            div.innerHTML +=
+                                '<div class="legend-section">' +
+                                'Community Resources' +
+                                '</div>';
+                        }
+
+
+                        div.innerHTML +=
+                            '📚 Libraries<br>';
                     }
 
 
